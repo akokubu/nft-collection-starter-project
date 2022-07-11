@@ -89,6 +89,10 @@
   font-weight: bold;
 }
 
+.spinner {
+  display: flex;
+  justify-content: center;
+}
 /* KeyFrames */
 @-webkit-keyframes gradient-animation {
   0% {

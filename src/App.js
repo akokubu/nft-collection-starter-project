@@ -3,6 +3,7 @@ import twitterLogo from "./assets/twitter-logo.svg";
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import myEpicNft from "./utils/MyEpicNFT.json";
+import ReactLoading from "react-loading";
 
 // Constantsを宣言する: constとは値書き換えを禁止した変数を宣言する方法です。
 const TWITTER_HANDLE = "ebookak";
@@ -14,6 +15,7 @@ const CONTRACT_ADDRESS = "0x56ED2E9cB963a0527eE324C78F78aEd61839a275";
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [mintCount, setMintCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   console.log("currentAccount: ", currentAccount);
 
   window.ethereum.on("chainChanged", (chainId) => {
@@ -118,6 +120,7 @@ const App = () => {
           signer
         );
         console.log("Going to pop wallet now to pay gas...");
+        setLoading(true);
         let nftTxn = await connectedContract.makeAnEpicNFT();
         console.log("Mining...please wait.");
         await nftTxn.wait();
@@ -131,6 +134,7 @@ const App = () => {
     } catch (error) {
       console.log(error);
     }
+    setLoading(false);
   };
 
   const setupEventListener = async () => {
@@ -200,6 +204,13 @@ const App = () => {
           <p className="sub-text">あなただけの特別な NFT を Mint しよう💫</p>
           {currentAccount === "" ? (
             renderNotConnectedContainer()
+          ) : loading ? (
+            <>
+              <div className="spinner">
+                <ReactLoading type="spin" />
+              </div>
+              <p className="sub-text">Loading....</p>
+            </>
           ) : (
             <>
               <button
