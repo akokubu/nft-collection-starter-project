@@ -9,11 +9,43 @@ const TWITTER_HANDLE = "ebookak";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const OPENSEA_LINK = "";
 const TOTAL_MINT_COUNT = 50;
-const CONTRACT_ADDRESS = "0xAdd60E3c1f7A16435A59dc1F21EdA763DE369A5c";
+const CONTRACT_ADDRESS = "0x56ED2E9cB963a0527eE324C78F78aEd61839a275";
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const [mintCount, setMintCount] = useState(0);
   console.log("currentAccount: ", currentAccount);
+
+  window.ethereum.on("chainChanged", (chainId) => {
+    // Handle the new chain.
+    // Correctly handling chain changes can be complicated.
+    // We recommend reloading the page unless you have good reason not to.
+    window.location.reload();
+  });
+
+  const checkRinkebyTestNet = async () => {
+    let chainId = await getChainId();
+    console.log("Connected to chain " + chainId);
+    const rinkebyChainId = "0x4";
+
+    if (chainId !== rinkebyChainId) {
+      throw new Error("You are not connected to the Rinkeby Test Network!");
+    }
+  };
+
+  const getChainId = async () => {
+    const { ethereum } = window;
+    if (!ethereum) {
+      console.log("Make sure you have Metamask!");
+      return;
+    } else {
+      console.log("We have ethereum object", ethereum);
+    }
+    const chainId = await ethereum.request({ method: "eth_chainId" });
+
+    console.log("chainId=", chainId);
+    return chainId;
+  };
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -23,6 +55,14 @@ const App = () => {
     } else {
       console.log("We have ethereum object", ethereum);
     }
+
+    try {
+      await checkRinkebyTestNet();
+    } catch (error) {
+      alert(error);
+      return;
+    }
+    getCurrentMintCount();
 
     // ユーザが認証可能なウォレットアドレスを持っている場合は、
     // ユーザに対してウォレットへのアクセス許可を求める
@@ -41,6 +81,12 @@ const App = () => {
   };
 
   const connectWallet = async () => {
+    try {
+      await checkRinkebyTestNet();
+    } catch (error) {
+      alert(error);
+      return;
+    }
     try {
       const { ethereum } = window;
       if (!ethereum) {
@@ -124,8 +170,26 @@ const App = () => {
     </button>
   );
 
+  const getCurrentMintCount = async () => {
+    const { ethereum } = window;
+    if (ethereum) {
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const connectedContract = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        myEpicNft.abi,
+        provider
+      );
+      console.log("connectedContract: ", connectedContract);
+      const mintCount = await connectedContract.currentTokenId();
+      setMintCount(mintCount.toNumber());
+    }
+  };
+
   useEffect(() => {
-    checkIfWalletIsConnected();
+    const f = async () => {
+      checkIfWalletIsConnected();
+    };
+    f();
   }, []);
 
   return (
@@ -137,12 +201,17 @@ const App = () => {
           {currentAccount === "" ? (
             renderNotConnectedContainer()
           ) : (
-            <button
-              onClick={askContractToMintNft}
-              className="cta-button connect-wallet-button"
-            >
-              Mint NFT
-            </button>
+            <>
+              <button
+                onClick={askContractToMintNft}
+                className="cta-button connect-wallet-button"
+              >
+                Mint NFT
+              </button>
+              <p className="sub-text">
+                これまでに作成された {mintCount}/{TOTAL_MINT_COUNT} NFT
+              </p>
+            </>
           )}
         </div>
         <div className="footer-container">
