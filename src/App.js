@@ -108,6 +108,13 @@ const App = () => {
     }
   };
 
+  const moveToRarible = () => {
+    window.open(
+      `https://rinkeby.rarible.com/collection/${CONTRACT_ADDRESS}/items`,
+      "_blank"
+    );
+  };
+
   const askContractToMintNft = async () => {
     try {
       const { ethereum } = window;
@@ -154,6 +161,7 @@ const App = () => {
           alert(
             `あなたのウォレットにNFTを送信しました。OpenSeaに表示されるまで最大10分かかることがあります。NFTへのリンクはこちらです: https://testnets.opensea.io/assets/rinkeby/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
           );
+          setMintCount(tokenId.toNumber() + 1);
         });
         console.log("Setup event listener");
       } else {
@@ -196,6 +204,19 @@ const App = () => {
     f();
   }, []);
 
+  const MintButton = () => {
+    return (
+      mintCount < TOTAL_MINT_COUNT && (
+        <button
+          onClick={askContractToMintNft}
+          className="cta-button connect-wallet-button"
+        >
+          Mint NFT
+        </button>
+      )
+    );
+  };
+
   return (
     <div className="App">
       <div className="container">
@@ -213,15 +234,16 @@ const App = () => {
             </>
           ) : (
             <>
-              <button
-                onClick={askContractToMintNft}
-                className="cta-button connect-wallet-button"
-              >
-                Mint NFT
-              </button>
+              <MintButton />
               <p className="sub-text">
                 これまでに作成された {mintCount}/{TOTAL_MINT_COUNT} NFT
               </p>
+              <button
+                onClick={moveToRarible}
+                className="cta-button connect-wallet-button"
+              >
+                Rarible でコレクションを表示
+              </button>
             </>
           )}
         </div>
